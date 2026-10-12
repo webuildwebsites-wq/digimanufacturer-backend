@@ -66,6 +66,8 @@ const allowedOrigins = [
   "https://digiopticsretailapi.digibysr.in/api",
   "https://digiopticsretailapi.digibysr.in",
   "https://digiretail.digibysr.in",
+  "https://newdigimanufacturer-frontend.digibysr.in",
+  "https://newdigimanufacturer-backend.digibysr.in",
   "https://digioptics-wholesale.netlify.app",
   "https://digiopticswholesaledibysr.netlify.app",
   "https://digiwholesale-frontend.digibysr.in",
