@@ -1,0 +1,40 @@
+import express from "express";
+import { getOrder, listOrders, cancelOrder, deleteOrder, suggestionsOrders, getRxOrders, getDraftOrders, getTintOptions, getFrameTypes, getProductBrands, getProductCategories, getProductTreatments, getProductIndexes, getProductTypes, getProductCoatings, getProductNames } from "../../core/controllers/order/order.controller.js";
+import { ProtectUser } from "../../middlewares/Auth/AdminMiddleware/adminMiddleware.js";
+import { createBulkOrder, getBulkOrderChallan, getBulkOrderInvoice, updateOrderStatus, updateBulkDraftOrder, getPublicOrderStatus, updateOrderTracking } from "../../core/controllers/order/bulkorder/bulkorder.js";
+import { checkPageAccess, checkPermission } from "../../middlewares/Auth/AdminMiddleware/rbac.middleware.js";
+
+const orderRouter = express.Router();
+
+orderRouter.get("/status/public", getPublicOrderStatus);
+
+orderRouter.use(ProtectUser);
+
+orderRouter.get("/product/get-tint", getTintOptions);
+orderRouter.get("/product/get-frame-types", getFrameTypes);
+orderRouter.get("/product-fields/brand", getProductBrands);
+orderRouter.get("/product-fields/category", getProductCategories);
+orderRouter.get("/product-fields/treatment", getProductTreatments);
+orderRouter.get("/product-fields/index", getProductIndexes);
+orderRouter.get("/product-fields/productType", getProductTypes);
+orderRouter.get("/product-fields/coating", getProductCoatings);
+orderRouter.get("/product-names", getProductNames);
+
+orderRouter.post("/create-bulk-orders", checkPermission("ADD_ORDER"), createBulkOrder);
+orderRouter.get("/bulk-orders/:orderId/challan", checkPageAccess("ALL_ORDERS"), getBulkOrderChallan);
+orderRouter.get("/bulk-orders/:orderId/invoice", checkPageAccess("ALL_ORDERS"), getBulkOrderInvoice);
+orderRouter.patch("/bulk-orders/:orderId/status",    checkPermission("UPDATE_ORDER"), updateOrderStatus);
+orderRouter.patch("/bulk-orders/:orderId/tracking",  checkPermission("UPDATE_ORDER"), updateOrderTracking);
+
+orderRouter.get("/get-all-orders", checkPageAccess("ALL_ORDERS"), listOrders);
+orderRouter.get("/all-orders", checkPageAccess("ALL_ORDERS"), listOrders);
+orderRouter.get("/draft-orders", checkPageAccess("DRAFTS"), getDraftOrders);
+orderRouter.get("/rx-orders", checkPageAccess("ALL_ORDERS"), getRxOrders);
+orderRouter.get("/suggestions", checkPageAccess("ALL_ORDERS"), suggestionsOrders);
+
+orderRouter.get("/:id", checkPageAccess("ALL_ORDERS"), getOrder);
+orderRouter.post("/:id/cancel", checkPermission("UPDATE_ORDER"), cancelOrder);
+orderRouter.delete("/:id", checkPermission("DELETE_ORDER"), deleteOrder);
+orderRouter.patch("/:id/draft", checkPermission("UPDATE_DRAFT"), updateBulkDraftOrder);
+
+export default orderRouter;
