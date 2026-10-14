@@ -79,7 +79,7 @@ export const createEmployee = async (req, res) => {
 
     let assignedSupervisor = null;
 
-    if (!employeeType || !username || !employeeName || !country || !email || !password || !phone || !address) {
+    if (!employeeType || !username || !employeeName || !email || !password || !phone) {
       return sendErrorResponse(res, 400, 'VALIDATION_ERROR', 'All required fields must be provided');
     }
 
@@ -222,10 +222,7 @@ export const createEmployee = async (req, res) => {
       }
     }
 
-    if (['EMPLOYEE', 'SUPERVISOR', 'TEAMLEAD'].includes(employeeType.toUpperCase()) &&
-      department && department.toUpperCase() === 'SALES' && !zone) {
-      return sendErrorResponse(res, 400, 'VALIDATION_ERROR', 'Zone is required for SALES department employees, supervisors, and team leads');
-    }
+
 
     if (zone && zoneRefId) {
       const locationDoc = await Location.findById(zoneRefId);
@@ -358,18 +355,18 @@ export const createEmployee = async (req, res) => {
       email,
       password,
       phone,
-      address,
-      country,
-      pincode,
-      aadharCard,
-      panCard,
+      address: address || '',
+      country: country || 'India',
+      pincode: pincode || '',
+      aadharCard: aadharCard || '',
+      panCard: panCard || '',
       expiry,
       employeeCode,
       EmployeeType: employeeType.toUpperCase(),
       createdBy: req.user.id,
       isActive: true,
-      aadharCardImg,
-      panCardImg,
+      aadharCardImg: aadharCardImg || '',
+      panCardImg: panCardImg || '',
       employeeProfileImg,
       pageAccess:        Array.isArray(pageAccess)        ? pageAccess        : [],
       accessPermissions: Array.isArray(accessPermissions) ? accessPermissions : [],

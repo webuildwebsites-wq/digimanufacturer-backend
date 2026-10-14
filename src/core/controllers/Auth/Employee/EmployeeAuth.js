@@ -6,11 +6,13 @@ import { sendEmail } from '../../../../core/config/Email/emailService.js';
 import ResetPasswordTemplate from '../../../../Utils/Mail/ResetPasswordTemplate.js';
 import { generateResetToken, verifyResetToken, decodeUidb36 } from '../../../../Utils/Auth/passwordResetUtils.js';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 dotenv.config();
 
 export const employeeLogin = async (req, res) => {
   try {
     const { loginId, password, tenantId } = req.body;
+    console.log('=== Login attempt === loginId:', loginId, '| DB:', mongoose.connection.name, '| tenantId:', tenantId);
     if (!loginId || !password) {
       return sendErrorResponse(res, 400, 'VALIDATION_ERROR', 'Please provide login ID (username, email, or employee code) and password');
     }

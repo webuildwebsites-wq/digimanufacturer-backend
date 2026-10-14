@@ -86,17 +86,20 @@ const employee = new mongoose.Schema(
     },
     address: {
       type: String,
-      required: [true, "Address is required"],
+      required: false,
       trim: true,
+      default: "",
     },
     country: {
       type: String,
-      required: [true, "Country is required"],
+      required: false,
       trim: true,
+      default: "India",
     },
     pincode: {
       type: String,
       trim: true,
+      default: "",
     },
     EmployeeType: {
       type: String,
@@ -128,28 +131,14 @@ const employee = new mongoose.Schema(
     zone: {
       name: {
         type: String,
-        required: function () {
-          const dept = this.Department?.name || this.Department;
-          return (
-            ["EMPLOYEE", "SUPERVISOR", "TEAMLEAD"].includes(
-              this.EmployeeType,
-            ) && dept === "SALES"
-          );
-        },
         trim: true,
         uppercase: true,
+        default: null,
       },
       refId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Location",
-        required: function () {
-          const dept = this.Department?.name || this.Department;
-          return (
-            ["EMPLOYEE", "SUPERVISOR", "TEAMLEAD"].includes(
-              this.EmployeeType,
-            ) && dept === "SALES"
-          );
-        },
+        default: null,
       },
     },
     aadharCard: {

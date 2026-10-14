@@ -166,14 +166,12 @@ const customerSchema = new mongoose.Schema(
     // DOCUMENTATION DETAILS
     isGSTRegistered: {
       type: Boolean,
-      required: true,
+      default: false,
     },
     gstType: {
       name: {
         type: String,
-        required: function () {
-          return this.isGSTRegistered === true;
-        },
+        required: false,
       },
       refId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -183,39 +181,27 @@ const customerSchema = new mongoose.Schema(
     gstNumber: {
       type: String,
       uppercase: true,
-      required: function () {
-        return this.isGSTRegistered === true;
-      },
+      required: false,
     },
     gstCertificateImg: {
       type: String,
-      required: function () {
-        return this.isGSTRegistered === true;
-      },
+      required: false,
     },
     panCard: {
       type: String,
-      required: function () {
-        return this.isGSTRegistered === false;
-      },
+      required: false,
     },
     aadharCard: {
       type: String,
-      required: function () {
-        return this.isGSTRegistered === false;
-      },
+      required: false,
     },
     panCardImg: {
       type: String,
-      required: function () {
-        return this.isGSTRegistered === false;
-      },
+      required: false,
     },
     aadharCardImg: {
       type: String,
-      required: function () {
-        return this.isGSTRegistered === false;
-      },
+      required: false,
     },
 
 
@@ -342,13 +328,7 @@ const customerSchema = new mongoose.Schema(
           default: ""
         }
       }],
-      validate: {
-        validator: function (value) {
-          if (!value || value.length === 0) return true;
-          return value.length === 3;
-        },
-        message: 'chequeDetails must have exactly 3 entries if provided'
-      }
+      default: [],
     },
     chequeRemark: {
       type: String,

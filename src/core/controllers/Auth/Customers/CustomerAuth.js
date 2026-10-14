@@ -164,15 +164,7 @@ export const customerBasicRegistration = async (req, res) => {
       return sendErrorResponse(res, 400, "VALIDATION_ERROR", "All bill to address fields are required (branchName, customerContactName, customerContactNumber, country, state, city, zipCode, address, billingCurrency, billingMode)");
     }
 
-    if (isGSTRegistered === true) {
-      if (!gstNumber || !gstType || !gstCertificateImg) {
-        return sendErrorResponse(res, 400, "VALIDATION_ERROR", "gstNumber, gstType and gstCertificateImg are required when GST registered");
-      }
-    } else {
-      if (!panCard || !aadharCard || !panCardImg || !aadharCardImg) {
-        return sendErrorResponse(res, 400, "VALIDATION_ERROR", "panCard, aadharCard and their images are required when not GST registered");
-      }
-    }
+    // GST, PAN, Aadhaar docs are optional now as per requirements
 
     if (yearOfEstablishment !== undefined && yearOfEstablishment !== null) {
       const currentYear = new Date().getFullYear();
@@ -203,36 +195,10 @@ export const customerBasicRegistration = async (req, res) => {
       return sendErrorResponse(res, 400, "VALIDATION_ERROR", "proprietorName is required");
     }
 
-    if (isGSTRegistered && (!firmName || firmName.trim() === "")) {
-      return sendErrorResponse(res, 400, "VALIDATION_ERROR", "firmName is required when GST type is 'Registered'",
-      );
-    }
-
     if (chequeDetails !== undefined && chequeDetails !== null) {
       if (!Array.isArray(chequeDetails)) {
         return sendErrorResponse(res, 400, "VALIDATION_ERROR", "chequeDetails must be an array");
       }
-
-      if (chequeDetails.length > 0 && chequeDetails.length !== 3) {
-        return sendErrorResponse(res, 400, "VALIDATION_ERROR", "Exactly 3 cheque entries are required");
-      }
-
-      for (let i = 0; i < chequeDetails.length; i++) {
-        const cheque = chequeDetails[i];
-        const hasNumber = cheque.chequeNumber && cheque.chequeNumber.trim() !== "";
-        const hasImage = cheque.chequeImage && cheque.chequeImage.trim() !== "";
-        if ((hasNumber && !hasImage) || (!hasNumber && hasImage)) {
-          return sendErrorResponse(res, 400, "VALIDATION_ERROR", `chequeDetails[${i}]: both chequeNumber and chequeImage are required together`);
-        }
-      }
-    }
-
-    // if chequeDetails not provided, chequeRemark is required
-    const noChequeProvided = !chequeDetails || !Array.isArray(chequeDetails) ||
-      chequeDetails.every(c => (!c.chequeNumber || c.chequeNumber.trim() === "") && (!c.chequeImage || c.chequeImage.trim() === ""));
-
-    if (noChequeProvided && (!chequeRemark || chequeRemark.trim() === "")) {
-      return sendErrorResponse(res, 400, "VALIDATION_ERROR", "chequeRemark is required when chequeDetails are not provided");
     }
 
     if (!billingCycle || !['7_days', '15_days', 'end_of_month', 'custom'].includes(billingCycle)) {
@@ -248,8 +214,6 @@ export const customerBasicRegistration = async (req, res) => {
     const requiredRefIds = [
       { name: "BusinessTypeRefId", value: businessTypeRefId },
       { name: "salesPersonRefId", value: salesPersonRefId },
-      { name: "zoneRefId", value: zoneRefId },
-      { name: "gstTypeRefId", value: gstTypeRefId },
       { name: "creditDaysRefId", value: creditDaysRefId },
     ];
 
@@ -260,6 +224,14 @@ export const customerBasicRegistration = async (req, res) => {
       if (!isValidObjectId(field.value)) {
         return sendErrorResponse(res, 400, "VALIDATION_ERROR", `${field.name} must be a valid ObjectId (24 hex characters)`,);
       }
+    }
+
+    if (zoneRefId && !isValidObjectId(zoneRefId)) {
+      return sendErrorResponse(res, 400, "VALIDATION_ERROR", `zoneRefId must be a valid ObjectId (24 hex characters)`);
+    }
+
+    if (gstTypeRefId && !isValidObjectId(gstTypeRefId)) {
+      return sendErrorResponse(res, 400, "VALIDATION_ERROR", `gstTypeRefId must be a valid ObjectId (24 hex characters)`);
     }
 
     // if (!brandCategories || !Array.isArray(brandCategories) || brandCategories.length === 0) {
@@ -364,20 +336,20 @@ export const customerBasicRegistration = async (req, res) => {
       mobileNo1,
       mobileNo2,
       businessEmail: businessEmail.toLowerCase().trim(),
-      isGSTRegistered: isGSTRegistered,
-      gstNumber: isGSTRegistered ? gstNumber : undefined,
+      isGSTRegistered: !!isGSTRegistered,
+      gstNumber: gstNumber ? gstNumber.trim() : undefined,
       gstType:
-        isGSTRegistered && gstType
+        gstType && gstTypeRefId
           ? {
             name: gstType,
             refId: gstTypeRefId,
           }
           : undefined,
-      gstCertificateImg: isGSTRegistered ? gstCertificateImg : undefined,
-      panCard: !isGSTRegistered ? panCard : undefined,
-      aadharCard: !isGSTRegistered ? aadharCard : undefined,
-      panCardImg: !isGSTRegistered ? panCardImg : undefined,
-      aadharCardImg: !isGSTRegistered ? aadharCardImg : undefined,
+      gstCertificateImg: gstCertificateImg || undefined,
+      panCard: panCard ? panCard.trim() : undefined,
+      aadharCard: aadharCard ? aadharCard.trim() : undefined,
+      panCardImg: panCardImg || undefined,
+      aadharCardImg: aadharCardImg || undefined,
 
       // Account Status
       status: {
@@ -456,7 +428,7 @@ export const customerBasicRegistration = async (req, res) => {
 
       // Sales Person Input Fields
       proprietorName: proprietorName,
-      firmName: firmName.trim(),
+      firmName: firmName ? firmName.trim() : (shopName ? shopName.trim() : undefined),
       chequeDetails: Array.isArray(chequeDetails)
         ? chequeDetails.filter(c => (c.chequeNumber && c.chequeNumber.trim() !== "") || (c.chequeImage && c.chequeImage.trim() !== ""))
         : [],
@@ -689,8 +661,17 @@ export const updateCustomerProfile = async (req, res) => {
     if (updateData.yearOfEstablishment !== undefined) updateFields.yearOfEstablishment = updateData.yearOfEstablishment;
     if (updateData.proposedDiscount !== undefined) updateFields.proposedDiscount = updateData.proposedDiscount;
     if (updateData.currentlyDealtBrands !== undefined) updateFields.currentlyDealtBrands = updateData.currentlyDealtBrands?.trim();
-    if (updateData.minSalesValue !== undefined) updateFields.minSalesValue = updateData.minSalesValue;
     if (updateData.finalDiscount !== undefined) updateFields.finalDiscount = updateData.finalDiscount;
+    if (updateData.brands !== undefined && Array.isArray(updateData.brands)) {
+      updateFields.brands = updateData.brands
+        .filter(b => b && (b.brandId || b._id) && (b.brandName || b.name))
+        .map(b => ({ brandId: b.brandId || b._id, brandName: b.brandName || b.name }));
+    }
+    if (updateData.chequeDetails !== undefined && Array.isArray(updateData.chequeDetails)) {
+      updateFields.chequeDetails = updateData.chequeDetails
+        .filter(c => (c.chequeNumber && c.chequeNumber.trim() !== "") || (c.chequeImage && c.chequeImage.trim() !== ""));
+    }
+    if (updateData.chequeRemark !== undefined) updateFields.chequeRemark = updateData.chequeRemark.trim();
 
     // Validate BusinessType
     if (updateData.BusinessType && updateData.BusinessTypeRefId) {
