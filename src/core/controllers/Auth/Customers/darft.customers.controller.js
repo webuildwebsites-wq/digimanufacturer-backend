@@ -132,6 +132,14 @@ export const customerDraftRegistration = async (req, res) => {
 
       // Customer Registration
       password: customerpassword,
+      brands: Array.isArray(req.body.brands)
+        ? req.body.brands
+          .filter(brand => brand && (brand.brandId || brand._id) && (brand.brandName || brand.name))
+          .map(brand => ({
+            brandId: brand.brandId || brand._id,
+            brandName: brand.brandName || brand.name,
+          }))
+        : [],
       brandCategories: brandCategories
         ? brandCategories
           .filter(brand => brand.brandId && brand.brandName && brand.brandId !== "" && brand.brandName !== "")
@@ -525,6 +533,16 @@ export const updateDraftCustomer = async (req, res) => {
     if (updateData?.proprietorName) updateFields.proprietorName = updateData?.proprietorName.trim();
     if (updateData?.firmName) updateFields.firmName = updateData?.firmName.trim();
     if (updateData?.finalDiscount !== undefined) updateFields.finalDiscount = updateData?.finalDiscount;
+    if (updateData?.brands !== undefined && Array.isArray(updateData.brands)) {
+      updateFields.brands = updateData.brands
+        .filter(b => b && (b.brandId || b._id) && (b.brandName || b.name))
+        .map(b => ({ brandId: b.brandId || b._id, brandName: b.brandName || b.name }));
+    }
+    if (updateData?.chequeDetails !== undefined && Array.isArray(updateData.chequeDetails)) {
+      updateFields.chequeDetails = updateData.chequeDetails
+        .filter(c => (c.chequeNumber && c.chequeNumber.trim() !== "") || (c.chequeImage && c.chequeImage.trim() !== ""));
+    }
+    if (updateData?.chequeRemark !== undefined) updateFields.chequeRemark = updateData.chequeRemark.trim();
 
     if (updateData?.businessType && updateData?.businessTypeRefId) {
       updateFields.businessType = {

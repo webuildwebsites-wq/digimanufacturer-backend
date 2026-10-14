@@ -133,6 +133,14 @@ const customerDraftSchema = new mongoose.Schema(
         }]
       }],
     },
+    brands: {
+      type: [{
+        brandId:   { type: mongoose.Schema.Types.ObjectId, ref: "Brand" },
+        brandName: { type: String, trim: true },
+      }],
+      default: [],
+      _id: false,
+    },
     salesPerson: {
       name: {
         type: String,

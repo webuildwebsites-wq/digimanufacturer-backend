@@ -473,7 +473,12 @@ export async function getProductBrandsService({ tenantId } = {}) {
 }
 
 export async function getProductCategoriesService({ brand, tenantId } = {}) {
-  const match = { category: { $nin: [null, ""] } };
+  const match = {
+    category: {
+      $nin: [null, ""],
+      $not: /^(frame|frames|sunglass|sunglasses)$/i,
+    },
+  };
   if (tenantId) match.tenantId = tenantId;
   if (brand?.trim()) match.brand = { $regex: `^${brand.trim()}$`, $options: "i" };
 
